@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.mapper.SysApiMapper">
+
+    <resultMap type="com.ruoyi.model.domain.SysApi" id="SysApiResult">
+        <result property="apiId" column="api_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="apiKey" column="api_key"/>
+        <result property="apiSecret" column="api_secret"/>
+        <result property="apiType" column="api_type"/>
+        <result property="apiStatus" column="api_status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectSysApiVo">
+        SELECT api_id, user_id, api_key, api_secret, api_type, api_status, create_by, create_time, update_by,
+               update_time, remark
+        FROM sys_api
+    </sql>
+
+    <select id="selectSysApiList" parameterType="com.ruoyi.model.domain.SysApi" resultMap="SysApiResult">
+        SELECT sa.api_id, sa.user_id, su.user_name, sa.api_key, sa.api_secret, sa.api_type, sa.api_status, sa.create_by, sa.create_time, sa.update_by,
+        sa.update_time, sa.remark
+        FROM sys_api AS sa
+        LEFT JOIN sys_user AS su ON sa.user_id = su.user_id
+        <where>
+            <if test="userId != null">and sa.user_id = #{userId}</if>
+            <if test="apiKey != null  and apiKey != ''">and sa.api_key = #{apiKey}</if>
+            <if test="apiType != null  and apiType != ''">and sa.api_type = #{apiType}</if>
+            <if test="apiStatus != null  and apiStatus != ''">and sa.api_status = #{apiStatus}</if>
+        </where>
+    </select>
+
+    <select id="selectSysApiByApiId" parameterType="Integer" resultMap="SysApiResult">
+        <include refid="selectSysApiVo"/>
+        where api_id = #{apiId}
+    </select>
+
+    <select id="selectSysApiByApiUserId" parameterType="Long" resultMap="SysApiResult">
+        <include refid="selectSysApiVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <insert id="insertSysApi" parameterType="com.ruoyi.model.domain.SysApi" useGeneratedKeys="true" keyProperty="apiId">
+        insert into sys_api
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="apiKey != null">api_key,</if>
+            <if test="apiSecret != null">api_secret,</if>
+            <if test="apiType != null">api_type,</if>
+            <if test="apiStatus != null">api_status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="apiKey != null">#{apiKey},</if>
+            <if test="apiSecret != null">#{apiSecret},</if>
+            <if test="apiType != null">#{apiType},</if>
+            <if test="apiStatus != null">#{apiStatus},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysApi" parameterType="com.ruoyi.model.domain.SysApi">
+        update sys_api
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="apiKey != null">api_key = #{apiKey},</if>
+            <if test="apiSecret != null">api_secret = #{apiSecret},</if>
+            <if test="apiType != null">api_type = #{apiType},</if>
+            <if test="apiStatus != null">api_status = #{apiStatus},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where api_id = #{apiId}
+    </update>
+
+    <delete id="deleteSysApiByApiId" parameterType="Integer">
+        DELETE FROM sys_api WHERE api_id = #{apiId}
+    </delete>
+
+    <delete id="deleteSysApiByApiIds" parameterType="String">
+        delete from sys_api where api_id in
+        <foreach item="apiId" collection="array" open="(" separator="," close=")">
+            #{apiId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+    <!-- 彩色日志依赖的渲染类 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+    <!-- 日志存放路径 -->
+    <property name="log.path" value="logs" />
+    <!-- 日志输出格式 -->
+    <property name="log.pattern" value="-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}) %clr([%thread]){magenta} %clr(%-5level) %clr(%logger{20} - [%method,%line]){cyan}:%L - %msg%n" />
+    <!-- 变量配置 -->
+    <springProperty scope="context" name="spring.application.name" source="spring.application.name"/>
+
+    <jmxConfigurator/>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/app.log</file>
+        <!-- 循环政策：基于时间创建日志文件 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 日志文件名格式 -->
+            <fileNamePattern>${log.path}/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 日志最大的历史 60天 -->
+            <maxHistory>60</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="pro">
+        <!--输出到 plumelog 的 appender-->
+<!--        <appender name="plumelog" class="com.plumelog.logback.appender.RedisAppender">-->
+<!--            <appName>${spring.application.name}</appName>-->
+<!--            <redisHost>192.168.0.2</redisHost>-->
+<!--            <redisPort>6101</redisPort>-->
+<!--            <redisAuth>JqzAdmin888</redisAuth>-->
+<!--        </appender>-->
+
+        <root level="info">
+<!--            <appender-ref ref="plumelog"/>-->
+            <appender-ref ref="file"/>
+        </root>
+        <logger name="com.gpower" additivity="false">
+            <level value="info"/>
+<!--            <appender-ref ref="plumelog"/>-->
+            <appender-ref ref="file"/>
+        </logger>
+        <logger name="org.springframework" additivity="false">
+            <level value="warn"/>
+<!--            <appender-ref ref="plumelog"/>-->
+            <appender-ref ref="file"/>
+        </logger>
+        <logger name="org.mybatis" additivity="false">
+            <level value="info"/>
+<!--            <appender-ref ref="plumelog"/>-->
+            <appender-ref ref="file"/>
+        </logger>
+    </springProfile>
+
+    <springProfile name="dev">
+        <!-- 输出到控制台的日志 -->
+        <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${log.pattern}</pattern>
+            </encoder>
+        </appender>
+        <root level="info">
+            <appender-ref ref="stdout"/>
+        </root>
+        <logger name="com.gpower" additivity="false">
+            <level value="debug"/>
+            <appender-ref ref="stdout"/>
+        </logger>
+        <logger name="org.springframework" additivity="false">
+            <level value="warn"/>
+            <appender-ref ref="stdout"/>
+        </logger>
+        <logger name="org.mybatis" additivity="false">
+            <level value="info"/>
+            <appender-ref ref="stdout"/>
+        </logger>
+    </springProfile>
+
+</configuration>
