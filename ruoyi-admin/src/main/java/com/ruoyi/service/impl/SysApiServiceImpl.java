@@ -1,6 +1,11 @@
 package com.ruoyi.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.ruoyi.common.constant.ApiConstants;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.text.Convert;
 import com.ruoyi.common.exception.ServiceException;
@@ -25,7 +30,7 @@ import java.util.Objects;
  * @date 2022-09-06
  */
 @Service
-public class SysApiServiceImpl implements ISysApiService
+public class SysApiServiceImpl extends ServiceImpl<SysApiMapper, SysApi> implements ISysApiService
 {
     @Autowired
     private SysApiMapper sysApiMapper;
@@ -48,13 +53,15 @@ public class SysApiServiceImpl implements ISysApiService
     @Override
     public SysApi selectSysApiByApiId(Integer apiId)
     {
-        return sysApiMapper.selectSysApiByApiId(apiId);
+        return sysApiMapper.selectById(apiId);
     }
 
     @Override
     public SysApi selectSysApiByApiUserId(Long userId)
     {
-        return sysApiMapper.selectSysApiByApiUserId(userId);
+        LambdaQueryWrapper<SysApi> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysApi::getUserId, userId);
+        return sysApiMapper.selectOne(wrapper);
     }
 
     /**
@@ -78,21 +85,22 @@ public class SysApiServiceImpl implements ISysApiService
     @Override
     public int insertSysApi(SysApi sysApi)
     {
-        SysApi api = sysApiMapper.selectSysApiByApiUserId(ShiroUtils.getUserId());
+        LambdaQueryWrapper<SysApi> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysApi::getUserId, ShiroUtils.getUserId());
+        SysApi api = sysApiMapper.selectOne(wrapper);
         if (!Objects.isNull(api))
         {
             throw new ServiceException("用户已有密钥，不可重复申请");
         }
-        IdUtil.nanoId();
         sysApi.setCreateBy(ShiroUtils.getLoginName());
         sysApi.setCreateTime(DateUtils.getNowDate());
         sysApi.setApiKey(IdUtils.snowflakeNextId());
         sysApi.setApiSecret(IdUtils.nanoId());
         // 默认停用
-        sysApi.setApiStatus(UserConstants.NORMAL_DISABLE);
+        sysApi.setApiStatus(ApiConstants.NORMAL_DISABLE);
         // 默认为APP的API
-        sysApi.setApiType("1");
-        int row = sysApiMapper.insertSysApi(sysApi);
+        sysApi.setApiType(ApiConstants.API_TYPE_APP);
+        int row = sysApiMapper.insert(sysApi);
         if (row > 0)
         {
             ApiUtils.setApiCache(sysApi.getApiKey(), sysApi.getApiSecret());
@@ -111,11 +119,11 @@ public class SysApiServiceImpl implements ISysApiService
     {
         sysApi.setUpdateBy(ShiroUtils.getLoginName());
         sysApi.setUpdateTime(DateUtils.getNowDate());
-        int row = sysApiMapper.updateSysApi(sysApi);
+        int row = sysApiMapper.updateById(sysApi);
         if (row > 0)
         {
-            SysApi api = selectSysApiByApiId(sysApi.getApiId());
-            if (UserConstants.NORMAL_DISABLE.equals(sysApi.getApiStatus()))
+            SysApi api = sysApiMapper.selectById(sysApi.getApiId());
+            if (ApiConstants.NORMAL_DISABLE.equals(sysApi.getApiStatus()))
             {
                 ApiUtils.removeApiCache(api.getApiKey());
             } else
@@ -135,17 +143,17 @@ public class SysApiServiceImpl implements ISysApiService
     @Override
     public int deleteSysApiByApiIds(String ids)
     {
-        Integer[] apiIds = Convert.toIntArray(ids);
-        for (Integer apiId : apiIds)
+        List<String> apiIds = CollUtil.toList(ids);
+        List<SysApi> sysApiList = sysApiMapper.selectBatchIds(apiIds);
+        for (SysApi sysApi : sysApiList)
         {
-            SysApi sysApi = selectSysApiByApiId(apiId);
-            if (UserConstants.NORMAL_OPEN.equals(sysApi.getApiStatus()))
+            if (ApiConstants.NORMAL_OPEN.equals(sysApi.getApiStatus()))
             {
                 throw new ServiceException("有密钥正在被用户使用，请先停用再删除");
             }
             ApiUtils.removeApiCache(sysApi.getApiKey());
         }
-        return sysApiMapper.deleteSysApiByApiIds(Convert.toStrArray(ids));
+        return sysApiMapper.deleteBatchIds(apiIds);
     }
 
     /**
@@ -157,19 +165,20 @@ public class SysApiServiceImpl implements ISysApiService
     @Override
     public int deleteSysApiByApiId(Integer apiId)
     {
-        SysApi sysApi = selectSysApiByApiId(apiId);
-        if (UserConstants.NORMAL_OPEN.equals(sysApi.getApiStatus()))
+        SysApi sysApi = sysApiMapper.selectById(apiId);
+        if (ApiConstants.NORMAL_OPEN.equals(sysApi.getApiStatus()))
         {
             throw new ServiceException("密钥正在被用户使用，请先停用再删除");
         }
         ApiUtils.removeApiCache(sysApi.getApiKey());
-        return sysApiMapper.deleteSysApiByApiId(apiId);
+        return sysApiMapper.deleteById(apiId);
     }
 
     @Override
     public void loadingApiCache()
     {
-        List<SysApi> sysApiList = sysApiMapper.selectSysApiList(SysApi.builder().build());
+        LambdaQueryWrapper<SysApi> wrapper = Wrappers.lambdaQuery();
+        List<SysApi> sysApiList = sysApiMapper.selectList(wrapper);
         for (SysApi sysApi : sysApiList)
         {
             ApiUtils.setApiCache(sysApi.getApiKey(), sysApi.getApiSecret());

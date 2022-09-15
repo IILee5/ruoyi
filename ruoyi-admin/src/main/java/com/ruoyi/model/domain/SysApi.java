@@ -1,7 +1,12 @@
 package com.ruoyi.model.domain;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
+import com.ruoyi.common.core.domain.MPBaseEntity;
 import lombok.*;
 
 /**
@@ -15,16 +20,19 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SysApi extends BaseEntity
+@TableName(value = "sys_api")
+public class SysApi extends MPBaseEntity
 {
     /** API主键 */
-    private Integer apiId;
+    @TableId(type = IdType.AUTO)
+    private Long apiId;
 
     /** 用户ID */
     @Excel(name = "用户序号", cellType = Excel.ColumnType.NUMERIC, prompt = "用户编号")
     private Long userId;
 
     /** 用户名称 */
+    @TableField(exist = false)
     private String userName;
 
     /** API钥匙 */

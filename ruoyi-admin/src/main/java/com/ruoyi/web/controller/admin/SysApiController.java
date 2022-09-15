@@ -66,7 +66,7 @@ public class SysApiController extends BaseController
     public AjaxResult export(SysApi sysApi)
     {
         List<SysApi> list = sysApiService.selectSysApiList(sysApi);
-        ExcelUtil<SysApi> util = new ExcelUtil<SysApi>(SysApi.class);
+        ExcelUtil<SysApi> util = new ExcelUtil<>(SysApi.class);
         return util.exportExcel(list, "API密钥数据");
     }
 

@@ -36,11 +36,6 @@ public class UserConstants
     /** 是否为系统默认（是） */
     public static final String YES = "Y";
 
-    /** 是否为系统开关（正常） */
-    public static final String NORMAL_OPEN = "0";
-    /** 是否为系统开关（停用） */
-    public static final String NORMAL_DISABLE = "1";
-
     /**
      * 用户名长度限制
      */

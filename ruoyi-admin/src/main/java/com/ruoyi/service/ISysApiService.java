@@ -1,5 +1,6 @@
 package com.ruoyi.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.model.domain.SysApi;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
  * @author iilee
  * @date 2022-09-06
  */
-public interface ISysApiService
+public interface ISysApiService extends IService<SysApi>
 {
     /**
      * 查询API密钥
